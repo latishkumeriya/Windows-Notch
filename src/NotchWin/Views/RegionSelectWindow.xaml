@@ -1,0 +1,22 @@
+<Window x:Class="NotchWin.Views.RegionSelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Select region" WindowStyle="None" ResizeMode="NoResize"
+        Topmost="True" ShowInTaskbar="False" Background="Black"
+        WindowStartupLocation="Manual" Cursor="Cross">
+    <Grid x:Name="Root">
+        <Image x:Name="Shot" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+        <Path x:Name="Dim" Fill="#8C000000"/>
+        <Canvas>
+            <Rectangle x:Name="Selection" Stroke="White" StrokeThickness="1.5" Visibility="Collapsed"/>
+            <Border x:Name="SizeTag" Background="#D9000000" CornerRadius="6" Padding="7,3" Visibility="Collapsed">
+                <TextBlock x:Name="SizeText" Foreground="White" FontSize="12" FontFamily="Segoe UI Variable Text, Segoe UI"/>
+            </Border>
+        </Canvas>
+        <Border x:Name="Hint" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,60,0,0"
+                Background="#E6000000" CornerRadius="16" Padding="16,8" IsHitTestVisible="False">
+            <TextBlock Foreground="White" FontSize="13" FontFamily="Segoe UI Variable Text, Segoe UI"
+                       Text="Drag to capture  •  Click for whole screen  •  Esc to cancel"/>
+        </Border>
+    </Grid>
+</Window>

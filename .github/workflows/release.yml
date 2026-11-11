@@ -1,0 +1,74 @@
+name: release
+
+# Push a tag like v0.3.0 to publish a GitHub Release with NotchWin.exe attached.
+# The exe is code-signed with Azure Artifact Signing when the repository variables
+# listed in docs/SIGNING.md are set; otherwise the release is published unsigned.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # create the GitHub Release
+  id-token: write   # OIDC login to Azure; no stored Azure password
+
+jobs:
+  release:
+    runs-on: windows-2025
+    # The Azure federated credential trusts this environment, so only this job can sign.
+    environment: release
+    env:
+      SIGNING_ENABLED: ${{ vars.AZURE_SIGNING_ACCOUNT != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish single-file exe
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          dotnet publish src/NotchWin/NotchWin.csproj -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+            -p:Version=$version -o publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item publish\*.pdb -ErrorAction SilentlyContinue
+
+      - name: Azure login (OIDC)
+        if: env.SIGNING_ENABLED == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign NotchWin.exe
+        if: env.SIGNING_ENABLED == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.AZURE_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\publish
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Verify signature
+        if: env.SIGNING_ENABLED == 'true'
+        shell: pwsh
+        run: |
+          $sig = Get-AuthenticodeSignature publish\NotchWin.exe
+          Write-Host "Status: $($sig.Status)  Signer: $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne "Valid") { throw "NotchWin.exe is not validly signed" }
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $hash = (Get-FileHash publish\NotchWin.exe -Algorithm SHA256).Hash.ToLower()
+          $signed = if ($env:SIGNING_ENABLED -eq "true") { "Code-signed with Azure Artifact Signing." } else { "Unsigned build: Windows/Chrome may warn (see README)." }
+          $notes = "$signed`n`nSHA-256 of NotchWin.exe: ``$hash``"
+          gh release create "${{ github.ref_name }}" publish\NotchWin.exe --title "NotchWin ${{ github.ref_name }}" --notes $notes
