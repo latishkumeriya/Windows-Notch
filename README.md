@@ -58,9 +58,9 @@ Right-click the notch → **Exit NotchWin**, replace `NotchWin.exe` with the new
 Needs the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0):
 
 ```powershell
-git clone https://github.com/latish2/Windows-Notch.git
+git clone https://github.com/latishkumeriya/Windows-Notch.git
 cd Windows-Notch
-dotnet publish src/NotchWin -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish
+dotnet publish src/NotchWin -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
 .\publish\NotchWin.exe
 ```
 

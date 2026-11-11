@@ -7,10 +7,10 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
       - name: Publish single-file exe
@@ -18,7 +18,7 @@ jobs:
           dotnet publish src/NotchWin/NotchWin.csproj -c Release -r win-x64 --self-contained true
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
           -o publish
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: NotchWin-win-x64
           path: publish/NotchWin.exe
@@ -27,15 +27,15 @@ jobs:
     needs: build
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
         with:
           name: NotchWin-win-x64
           path: publish
       - name: Capture notch screenshots
         shell: pwsh
         run: ./.github/scripts/preview.ps1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: screenshots

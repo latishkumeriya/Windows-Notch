@@ -36,7 +36,7 @@ Until you complete the setup below, the `release` workflow still works; it just 
 
 1. **Microsoft Entra ID → App registrations → New registration**, name `notchwin-github-signing`. Note the **Application (client) ID** and **Directory (tenant) ID**.
 2. In that app: **Certificates & secrets → Federated credentials → Add credential → GitHub Actions deploying Azure resources**:
-   - Organization: `latish2`, Repository: `Windows-Notch`
+   - Organization: `latishkumeriya`, Repository: `Windows-Notch`
    - Entity type: **Environment**, name: `release`
 3. Back on the signing account: **Access control (IAM) → Add role assignment → Artifact Signing Certificate Profile Signer**, then assign it to `notchwin-github-signing`.
 
